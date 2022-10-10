@@ -1,0 +1,4 @@
+rootProject.name = 'hibernate-study-java'
+
+include 'hibernate-core'
+include 'example-application'
