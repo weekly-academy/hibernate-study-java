@@ -12,6 +12,10 @@ public class JdbcTemplate {
 
     private final Connection connection;
 
+    public Connection getConnection() {
+        return connection;
+    }
+
     public JdbcTemplate(Connection connection) {
         this.connection = connection;
     }
@@ -49,8 +53,20 @@ public class JdbcTemplate {
         }
     }
 
-    public void delete(String tableName, Object id) {
-        throw new RuntimeException("not implement yet");
+    public void delete(Object object) throws IllegalAccessException, SQLException {
+        String tableName = object.getClass().getAnnotation(Entity.class).name();
+        Field[] fields = object.getClass().getDeclaredFields();
+
+        Field idField = Arrays.stream(fields)
+                .filter(field -> field.getAnnotation(Id.class) != null)
+                .collect(Collectors.toList()).get(0);
+
+        idField.setAccessible(true);
+        String sql = generateDeleteQuery(tableName, idField, idField.get(object));
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.executeUpdate();
+        }
     }
 
     public void insert(Object obj) throws IllegalAccessException, SQLException, NoSuchFieldException {
@@ -95,6 +111,17 @@ public class JdbcTemplate {
     private String generateSelectQuery(String tableName, Field idField, Object id) {
         StringBuilder sb = new StringBuilder();
         sb.append("select * from ");
+        sb.append(tableName);
+        sb.append(" where ");
+        sb.append(idField.getName());
+        sb.append("=");
+        sb.append(id);
+        return sb.toString();
+    }
+
+    private String generateDeleteQuery(String tableName, Field idField, Object id) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("delete from ");
         sb.append(tableName);
         sb.append(" where ");
         sb.append(idField.getName());

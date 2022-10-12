@@ -1,19 +1,18 @@
 package org.weekly.core;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
-// TODO: transaction need to implement, but how..?
 public interface Session {
 
     Connection close();
 
-    void persist(Object object);
+    void persist(Object object) throws SQLException, NoSuchFieldException, IllegalAccessException;
 
-    void remove(Object object);
+    void remove(Object object) throws SQLException, IllegalAccessException;
 
-    <T> T merge(T object);
+    <T> T get(Class<T> entityType, Object id) throws SQLException;
 
-    Connection disconnect();
-
-    <T> T get(Class<T> entityType, Object id);
+    // TODO: transaction need to implement, but how..?
+    void commit();
 }
