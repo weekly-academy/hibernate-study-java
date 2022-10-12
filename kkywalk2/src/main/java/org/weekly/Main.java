@@ -20,13 +20,10 @@ public class Main {
         try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS)) {
             JdbcTemplate jdbcTemplate = new JdbcTemplate(conn);
 
-            Student student = new Student(1, "asd", 6);
-            jdbcTemplate.insert(student);
-
-        } catch (SQLException | IllegalAccessException e) {
+            Student student = jdbcTemplate.selectOne(Student.class, "student", 1);
+            System.out.println(student);
+        } catch (SQLException e) {
             e.printStackTrace();
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
         }
     }
 }
