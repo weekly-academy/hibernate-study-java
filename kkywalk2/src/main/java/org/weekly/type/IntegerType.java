@@ -13,6 +13,11 @@ public class IntegerType implements OrmType<Integer>{
     }
 
     @Override
+    public String getColumnName() {
+        return columnName;
+    }
+
+    @Override
     public int getJdbcType() {
         return Types.INTEGER;
     }

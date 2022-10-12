@@ -13,6 +13,11 @@ public class StringType implements OrmType<String> {
     }
 
     @Override
+    public String getColumnName() {
+        return columnName;
+    }
+
+    @Override
     public int getJdbcType() {
         return Types.VARCHAR;
     }

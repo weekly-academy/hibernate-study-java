@@ -14,6 +14,11 @@ public class LocalDateTimeType implements OrmType<LocalDateTime> {
     }
 
     @Override
+    public String getColumnName() {
+        return columnName;
+    }
+
+    @Override
     public int getJdbcType() {
         return Types.BIGINT;
     }
