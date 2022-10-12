@@ -2,6 +2,7 @@ package org.weekly;
 
 import org.weekly.core.Hibernate;
 import org.weekly.core.JdbcTemplate;
+import org.weekly.core.SessionImpl;
 import org.weekly.entity.Student;
 
 import java.sql.Connection;
@@ -18,12 +19,15 @@ public class Main {
         Hibernate.initEntityInformation();
 
         try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS)) {
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(conn);
+            SessionImpl session = new SessionImpl(conn);
 
-            Student student = jdbcTemplate.selectOne(Student.class, "student", 1);
-            System.out.println(student);
+            Student student = new Student(1, "kky", 6);
+            session.persist(student);
+            session.remove(student);
         } catch (SQLException e) {
             e.printStackTrace();
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new RuntimeException(e);
         }
     }
 }
