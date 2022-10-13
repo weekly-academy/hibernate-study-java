@@ -1,8 +1,9 @@
 package org.weekly;
 
+import org.weekly.entity.Student;
 import org.weekly.core.Hibernate;
 import org.weekly.core.SessionImpl;
-import org.weekly.entity.Student;
+
 
 import java.sql.Connection;
 import java.sql.DriverManager;
