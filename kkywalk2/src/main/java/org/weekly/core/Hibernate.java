@@ -1,22 +1,18 @@
 package org.weekly.core;
 
 import org.reflections.Reflections;
-import org.weekly.type.IntegerType;
-import org.weekly.type.LocalDateTimeType;
-import org.weekly.type.LongType;
-import org.weekly.type.StringType;
+import org.weekly.type.*;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Hibernate {
 
     // TODO: get package name from configuration file
     private static final String packageName = "org.weekly";
 
-    private static final Map<String, EntityMetadata> entityInformation = new HashMap<>();
+    private static Map<String, EntityMetadata> entityInformation;
 
     public static Map<String, EntityMetadata> getEntityInformation() {
         return entityInformation;
@@ -25,32 +21,46 @@ public class Hibernate {
     // TODO: in this way can't cover relation between entity
     public static void initEntityInformation() {
         Reflections reflections = new Reflections(packageName);
-
         Set<Class<?>> types = reflections.getTypesAnnotatedWith(Entity.class);
-        for (Class<?> clazz : types) {
-            EntityMetadata entityMetadata = new EntityMetadata(clazz.getAnnotation(Entity.class).name());
 
-            for (Field field : clazz.getDeclaredFields()) {
-                field.setAccessible(true);
-                String typeName = field.getType().getTypeName();
-                switch (typeName) {
-                    case STRING_TYPE:
-                        entityMetadata.getFieldMetadata().add(new StringType(field.getName()));
-                        break;
-                    case LOCAL_DATETIME_TYPE:
-                        entityMetadata.getFieldMetadata().add(new LocalDateTimeType(field.getName()));
-                        break;
-                    case INT_TYPE:
-                    case INTEGER_TYPE:
-                        entityMetadata.getFieldMetadata().add(new IntegerType(field.getName()));
-                        break;
-                    case LONG_TYPE:
-                        entityMetadata.getFieldMetadata().add(new LongType(field.getName()));
-                        break;
-                }
-            }
+        entityInformation = types.stream()
+                .map(clazz -> {
+                    EntityMetadata entityMetadata = new EntityMetadata(clazz.getAnnotation(Entity.class).name());
+                    entityMetadata.getFieldMetadata().addAll(initEntityFieldTypes(clazz.getDeclaredFields()));
+                    return entityMetadata;
+                })
+                .reduce(
+                        new HashMap<>(),
+                        (acc, element) -> {
+                            acc.put(element.getTableName(), element);
+                            return acc;
+                            },
+                        // TODO: what is this?
+                        (acc, element) -> acc
+                );
+        System.out.println(entityInformation);
+    }
 
-            entityInformation.put(clazz.getAnnotation(Entity.class).name(), entityMetadata);
+    private static List<OrmType> initEntityFieldTypes(Field[] fields) {
+        return Arrays.stream(fields).map(Hibernate::getOrmTypeFromField).collect(Collectors.toList());
+    }
+
+    private static OrmType getOrmTypeFromField(Field field) {
+        field.setAccessible(true);
+        String typeName = field.getType().getTypeName();
+        switch (typeName) {
+            case STRING_TYPE:
+                return new StringType(field.getName());
+            case LOCAL_DATETIME_TYPE:
+                return new LocalDateTimeType(field.getName());
+            case INT_TYPE:
+            case INTEGER_TYPE:
+                return new IntegerType(field.getName());
+            case LONG_TYPE:
+                return new LongType(field.getName());
+            default:
+                // TODO: define exception type
+                throw new RuntimeException("Not supported type");
         }
     }
 

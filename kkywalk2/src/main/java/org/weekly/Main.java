@@ -1,7 +1,6 @@
 package org.weekly;
 
 import org.weekly.core.Hibernate;
-import org.weekly.core.JdbcTemplate;
 import org.weekly.core.SessionImpl;
 import org.weekly.entity.Student;
 
